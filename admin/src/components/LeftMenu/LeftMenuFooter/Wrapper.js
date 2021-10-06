@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 const Wrapper = styled.div`
   position: absolute;
   width: 100%;
-  background: ${props => props.theme.main.colors.strapi['blue-darker']};
+  background: ${props => props.theme.main.colors.won.blue};
   bottom: 0;
   .poweredBy {
     width: 100%;
@@ -23,8 +23,9 @@ const Wrapper = styled.div`
 `;
 
 const A = styled.a`
+  color: ${props => props.theme.main.colors.won.orange};
   &:hover {
-    color: #007bff;
+    color: ${props => props.theme.main.colors.won.orange};
     text-decoration: underline;
   }
 `;
