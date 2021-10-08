@@ -81,7 +81,8 @@ async function createManyToManyData(products) {
 }
 
 async function setImage({ image, game, field = "cover" }) {
-  const url = `https:${image}_bg_crop_1680x655.jpg`;
+  try {
+    const url = `https:${image}_bg_crop_1680x655.jpg`;
   const { data } = await axios.get(url, { responseType: "arraybuffer" });
   const buffer = Buffer.from(data, "base64");
 
@@ -103,6 +104,9 @@ async function setImage({ image, game, field = "cover" }) {
       "Content-Type": `multipart/form-data; boundary=${formData._boundary}`,
     },
   });
+  } catch (error) {
+    console.log("setImage", Exception(e));
+  }
 }
 
 async function createGames(products) {
@@ -150,12 +154,17 @@ async function createGames(products) {
 
 module.exports = {
   populate: async (params) => {
-    const gogApiUrl = `https://www.gog.com/games/ajax/filtered?mediaType=game&page=1&sort=popularity`
+    try {
+      const gogApiUrl = `https://www.gog.com/games/ajax/filtered?mediaType=game&page=1&sort=popularity`;
+      const {
+        data: { products }
+      } = await axios.get(gogApiUrl);
 
-    const {data: { products }} = await axios.get(gogApiUrl)
+      await createManyToManyData(products);
+      await createGames(products);
 
-    await createManyToManyData([products[2], products[3]]);
-    await createGames([products[2], products[3]]);
-
+    } catch (error) {
+      console.log("populate", Exception(e));
+    }
   }
 };
