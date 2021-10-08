@@ -7,8 +7,17 @@
 const axios = require("axios");
 const slugify = require("slugify")
 
+function Exception(e) {
+  return {e, data: e.data && e.data.error && e.data.errors};
+}
+
+function timeout(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function getGameInfo(slug) {
-  const jsdom = require("jsdom");
+  try {
+    const jsdom = require("jsdom");
   const { JSDOM } = jsdom;
   const body = await axios.get(`https://www.gog.com/game/${slug}`);
   const dom = new JSDOM(body.data);
@@ -20,6 +29,9 @@ async function getGameInfo(slug) {
     rating: 'BR0',
     short_description: description.textContent.slice(0, 160),
     description: description.innerHTML
+  }
+  } catch (e) {
+    console.log("getGameInfo", Exception(e))
   }
 }
 
@@ -68,6 +80,31 @@ async function createManyToManyData(products) {
   ]);
 }
 
+async function setImage({ image, game, field = "cover" }) {
+  const url = `https:${image}_bg_crop_1680x655.jpg`;
+  const { data } = await axios.get(url, { responseType: "arraybuffer" });
+  const buffer = Buffer.from(data, "base64");
+
+  const FormData = require("form-data");
+  const formData = new FormData();
+
+  formData.append("refId", game.id);
+  formData.append("ref", "game");
+  formData.append("field", field);
+  formData.append("files", buffer, { filename: `${game.slug}.jpg` });
+
+  console.info(`Uploading ${field} image: ${game.slug}.jpg`);
+
+  await axios({
+    method: "POST",
+    url: `http://${strapi.config.host}:${strapi.config.port}/upload`,
+    data: formData,
+    headers: {
+      "Content-Type": `multipart/form-data; boundary=${formData._boundary}`,
+    },
+  });
+}
+
 async function createGames(products) {
   await Promise.all(
     products.map(async (product) => {
@@ -95,6 +132,15 @@ async function createGames(products) {
           publisher: await getByName(product.publisher, "publisher"),
           ...(await getGameInfo(product.slug)),
         });
+
+        await setImage({ image: product.image, game });
+        await Promise.all(
+          product.gallery
+            .slice(0, 5)
+            .map((url) => setImage({ image: url, game, field: "gallery" }))
+        );
+
+        await timeout(2000);
 
         return game;
       }
