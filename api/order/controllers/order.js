@@ -23,6 +23,13 @@
       })
     );
 
+    if(!games.length) {
+      ctx.response.status = 404;
+      return {
+        error: "No valid products found!",
+      }
+    }
+
     return games;
   },
 };
