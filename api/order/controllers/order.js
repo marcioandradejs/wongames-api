@@ -56,7 +56,15 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
     // pegar as informações do frontend
     const { cart, paymentIntentId, paymentMethod } = ctx.request.body;
 
-    // pegar o usuario
+    // pega o token
+    const token = await strapi.plugins["users-permissions"].services.jwt.getToken(ctx);
+
+    // pega o id do usuário
+    const userId = token.id
+
+    // pegar as informações do usuário
+    const userInfo = await strapi.query("user", "users-permissions").findOne({ id: userId });
+
     // pegar os jogos
     // pegar o total (saber se é free ou não)
     // pegar o paymentIntentId
@@ -64,6 +72,6 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
     // salvar no banco
     // enviar um email da compra para o usuário
 
-    return { cart, paymentIntentId, paymentMethod };
+    return { cart, paymentIntentId, paymentMethod, userInfo };
   }
 };
