@@ -51,4 +51,19 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
       };
     }
   },
+
+  create: async (ctx) => {
+    // pegar as informações do frontend
+    const { cart, paymentIntentId, paymentMethod } = ctx.request.body;
+
+    // pegar o usuario
+    // pegar os jogos
+    // pegar o total (saber se é free ou não)
+    // pegar o paymentIntentId
+    // pegar as informacoes do pagamento (paymentMethod)
+    // salvar no banco
+    // enviar um email da compra para o usuário
+
+    return { cart, paymentIntentId, paymentMethod };
+  }
 };
