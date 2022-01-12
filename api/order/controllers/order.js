@@ -52,7 +52,7 @@ const orderTemplate = require('../../../config/functions/email-templates/order')
     const token = await strapi.plugins["users-permissions"].services.jwt.getToken(ctx);
 
     // pega o id do usuário
-    const userId = token.id
+    const userId = token.id;
 
     // pegar as informações do usuário
     const userInfo = await strapi.query("user", "users-permissions").findOne({ id: userId });
@@ -91,23 +91,24 @@ const orderTemplate = require('../../../config/functions/email-templates/order')
     const entity = await strapi.services.order.create(entry);
 
     // enviar um email da compra para o usuário
-    await strapi.plugins["email-designer"].services.email.sendTemplatedEmail({
-      to: userInfo.email,
-      from: 'no-reply@wongames.com',
-    },
-    {
-      templateId: 1,
-    },
-    orderTemplate,
-    {
-      user: userInfo,
-      payment: {
-        total: `R$ ${total_in_cents / 100}`,
-        card_brand: entry.card_brand,
-        card_last4: entry.card_last4
+    await strapi.plugins["email-designer"].services.email.sendTemplatedEmail(
+      {
+        to: userInfo.email,
+        from: "no-reply@wongames.com",
       },
-      games,
-    });
+      {
+        templateId: 1,
+      },
+      {
+        user: userInfo,
+        payment: {
+          total: `$ ${total_in_cents / 100}`,
+          card_brand: entry.card_brand,
+          card_last4: entry.card_last4,
+        },
+        games,
+      }
+    );
 
     // retornando o que foi salvo no banco
     return sanitizeEntity(entity, { model: strapi.models.order });
